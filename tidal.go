@@ -50,6 +50,15 @@ func (tidal *Tidal) GetAlbumTracks(id string) []Track {
 	return s.Items
 }
 
+// GetPlaylistTracks func
+func (tidal *Tidal) GetPlaylistTracks(id string) []Track {
+	var s struct {
+		Items []Track `json:"items"`
+	}
+	tidal.get("playlists/"+id+"/tracks", &url.Values{}, &s)
+	return s.Items
+}
+
 // SearchTracks func
 func (tidal *Tidal) SearchTracks(d string) []Track {
 	var s Search

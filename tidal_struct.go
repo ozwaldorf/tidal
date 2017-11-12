@@ -18,7 +18,7 @@ type Artist struct {
 
 // Album struct
 type Album struct {
-	Artists   []Artist    `json:"artists.omitempty"`
+	Artists   []Artist    `json:"artists,omitempty"`
 	Title     string      `json:"title"`
 	ID        json.Number `json:"id"`
 	Explicit  bool        `json:"explicit,omitempty"`
