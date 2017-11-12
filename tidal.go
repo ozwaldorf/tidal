@@ -60,7 +60,7 @@ func (tidal *Tidal) GetPlaylistTracks(id string) []Track {
 }
 
 // SearchTracks func
-func (tidal *Tidal) SearchTracks(d string, l int) []Track {
+func (tidal *Tidal) SearchTracks(d, l string) []Track {
 	var s Search
 	tidal.get("search", &url.Values{
 		"query": {d},
@@ -71,7 +71,7 @@ func (tidal *Tidal) SearchTracks(d string, l int) []Track {
 }
 
 // SearchAlbums func
-func (tidal *Tidal) SearchAlbums(d string, l int) []Album {
+func (tidal *Tidal) SearchAlbums(d, l string) []Album {
 	var s Search
 	tidal.get("search", &url.Values{
 		"query": {d},
@@ -82,7 +82,7 @@ func (tidal *Tidal) SearchAlbums(d string, l int) []Album {
 }
 
 // SearchArtists func
-func (tidal *Tidal) SearchArtists(d string, l int) []Artist {
+func (tidal *Tidal) SearchArtists(d, l string) []Artist {
 	var s Search
 	tidal.get("search", &url.Values{
 		"query": {d},
