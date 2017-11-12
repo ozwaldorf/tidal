@@ -41,6 +41,15 @@ func (tidal *Tidal) GetStreamURL(id, q string) string {
 	return s["url"].(string)
 }
 
+// GetAlbumTracks func
+func (tidal *Tidal) GetAlbumTracks(id) []Track {
+	var s struct {
+		Items []Track `json:"items"`
+	}
+	tidal.get("albums/"+id+"/tracks", &url.Values{}, &s)
+	return s.Items
+}
+
 // SearchTracks func
 func (tidal *Tidal) SearchTracks(d string) []Track {
 	var s Search
