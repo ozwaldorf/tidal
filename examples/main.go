@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	t := tidal.New("boi@oss.cc", "lolyeet")
+	t := tidal.New("", "") // put your username and pass
 	d := t.SearchTracks("Carry On")
 	downloadTrack(t, d[0], "LOSSLESS")
 }
