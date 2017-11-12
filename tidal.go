@@ -42,7 +42,7 @@ func (tidal *Tidal) GetStreamURL(id, q string) string {
 }
 
 // GetAlbumTracks func
-func (tidal *Tidal) GetAlbumTracks(id) []Track {
+func (tidal *Tidal) GetAlbumTracks(id string) []Track {
 	var s struct {
 		Items []Track `json:"items"`
 	}
