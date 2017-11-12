@@ -63,7 +63,7 @@ func downloadTrack(tid *tidal.Tidal, t tidal.Track, q string) {
 	}
 	f.Close()
 
-	err = enc(path, t.Title, t.Artists[0].Name, t.Album.Title)
+	err = enc(path, t.Title, t.Artists[0].Name, t.Album.Title, t.TrackNumber)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -74,7 +74,7 @@ func clean(s string) string {
 	return strings.Replace(s, "/", "\u2215", -1)
 }
 
-func enc(src, title, artist, album string) error {
+func enc(src, title, artist, album string, num int) error {
 	// Decode FLAC file.
 	stream, err := flac.ParseFile(src)
 	if err != nil {
@@ -89,6 +89,7 @@ func enc(src, title, artist, album string) error {
 			comment.Tags = append(comment.Tags, [2]string{"ARTIST", artist})
 			comment.Tags = append(comment.Tags, [2]string{"ALBUMARTIST", artist})
 			comment.Tags = append(comment.Tags, [2]string{"ALBUM", album})
+			comment.Tags = append(comment.Tags, [2]string{"TRACKNUMBER", string(num)})
 		}
 	}
 

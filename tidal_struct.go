@@ -27,13 +27,14 @@ type Album struct {
 
 // Track struct
 type Track struct {
-	Artists    []Artist    `json:"artists"`
-	Album      Album       `json:"album"`
-	Title      string      `json:"title"`
-	ID         json.Number `json:"id"`
-	Explicit   bool        `json:"explicit"`
-	Copyright  string      `json:"copyright"`
-	Popularity int         `json:"popularity"`
+	Artists     []Artist    `json:"artists"`
+	Album       Album       `json:"album"`
+	Title       string      `json:"title"`
+	ID          json.Number `json:"id"`
+	Explicit    bool        `json:"explicit"`
+	Copyright   string      `json:"copyright"`
+	Popularity  int         `json:"popularity"`
+	TrackNumber int         `json:"trackNumber"`
 }
 
 // Search struct
