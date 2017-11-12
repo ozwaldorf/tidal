@@ -18,9 +18,10 @@ func main() {
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		text, _ := reader.ReadString('\n')
-		d := t.SearchTracks(string(text))
-		downloadTrack(t, d[0], "LOSSLESS")
+		a := t.SearchAlbums(string(text))
+		downloadAlbum(t, a[0])
 	}
+
 }
 
 func downloadAlbum(t *tidal.Tidal, a tidal.Album) {
@@ -67,6 +68,7 @@ func downloadTrack(tid *tidal.Tidal, t tidal.Track, q string) {
 	if err != nil {
 		fmt.Println(err)
 	}
+	fmt.Println("")
 
 }
 
