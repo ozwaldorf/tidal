@@ -90,7 +90,7 @@ func enc(src, title, artist, album, num string) error {
 			comment.Tags = append(comment.Tags, [2]string{"ARTIST", artist})
 			comment.Tags = append(comment.Tags, [2]string{"ALBUMARTIST", artist})
 			comment.Tags = append(comment.Tags, [2]string{"ALBUM", album})
-			comment.Tags = append(comment.Tags, [2]string{"TRACKNUMBER", num})			comment.Tags = append(comment.Tags, [2]string{"TRACKNUMBER", string(num)})
+			comment.Tags = append(comment.Tags, [2]string{"TRACKNUMBER", num})
 		}
 	}
 
