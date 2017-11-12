@@ -18,11 +18,12 @@ type Artist struct {
 
 // Album struct
 type Album struct {
-	Artists   []Artist    `json:"artists,omitempty"`
-	Title     string      `json:"title"`
-	ID        json.Number `json:"id"`
-	Explicit  bool        `json:"explicit,omitempty"`
-	Copyright string      `json:"copyright,omitempty"`
+	Artists        []Artist    `json:"artists,omitempty"`
+	Title          string      `json:"title"`
+	ID             json.Number `json:"id"`
+	NumberOfTracks json.Number `json:"numberOfTracks"`
+	Explicit       bool        `json:"explicit,omitempty"`
+	Copyright      string      `json:"copyright,omitempty"`
 }
 
 // Track struct
