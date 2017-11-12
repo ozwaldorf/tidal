@@ -34,7 +34,7 @@ type Track struct {
 	Explicit    bool        `json:"explicit"`
 	Copyright   string      `json:"copyright"`
 	Popularity  int         `json:"popularity"`
-	TrackNumber int         `json:"trackNumber"`
+	TrackNumber json.Number `json:"trackNumber"`
 }
 
 // Search struct
