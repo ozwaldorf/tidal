@@ -21,12 +21,56 @@ var ui tui.UI
 var status *tui.StatusBar
 var progress *tui.Progress
 var infoBox *tui.Box
+var dl *tui.List
 var downQueue = make(chan tidal.Track, 512)
 var downList []tidal.Track
 var todo, done int
 
+const logo = `   __  _     __      __                        
+  / /_(_)___/ /____ / /      ______ __   _____ 
+ / __/ / __  / __  / / | /| / / __  / | / / _ \
+/ /_/ / /_/ / /_/ / /| |/ |/ / /_/ /| |/ /  __/
+\__/_/\__,_/\__,_/_/ |__/|__/\__,_/ |___/\___/ `
+
 func main() {
-	t = tidal.New("", "") // input your username and password
+
+	user := tui.NewEntry()
+	user.SetFocused(true)
+
+	password := tui.NewEntry()
+
+	form := tui.NewGrid(0, 0)
+	form.AppendRow(tui.NewLabel("Username"), tui.NewLabel("Password"))
+	form.AppendRow(user, password)
+
+	login := tui.NewButton("[Login]")
+	register := tui.NewButton("[Register]")
+
+	buttons := tui.NewHBox(
+		tui.NewSpacer(),
+		tui.NewPadder(1, 0, login),
+		tui.NewPadder(1, 0, register),
+	)
+	msg := tui.NewStatusBar("   yeet yeet")
+	window := tui.NewVBox(
+		tui.NewPadder(10, 1, tui.NewLabel(logo)),
+		tui.NewPadder(12, 0, msg),
+		tui.NewPadder(1, 1, form),
+		buttons,
+	)
+	window.SetBorder(true)
+
+	wrapper := tui.NewVBox(
+		tui.NewSpacer(),
+		window,
+		tui.NewSpacer(),
+	)
+	content := tui.NewHBox(tui.NewSpacer(), wrapper, tui.NewSpacer())
+	loginPage := tui.NewVBox(content, tui.NewStatusBar("[Ctrl+Q: Quit]  [Tab: Cycle input]"))
+	tui.DefaultFocusChain.Set(user, password, login, register)
+
+	ui = tui.New(loginPage)
+
 	win := tui.NewTable(0, 0)
 	win.SetColumnStretch(0, 2)
 	win.SetColumnStretch(1, 4)
@@ -49,13 +93,13 @@ func main() {
 		tui.NewSpacer(),
 	)
 	libBox.SetBorder(true)
-	libBox.SetTitle("=[   Results   ]=")
+	libBox.SetTitle("=[ Search:  ]=")
 
-	dl := tui.NewList()
+	dl = tui.NewList()
 	dlS := tui.NewScrollArea(dl)
 	dlBox := tui.NewVBox(dlS)
 	dlBox.SetBorder(true)
-	dlBox.SetTitle("=[  Downloads  ]=")
+	dlBox.SetTitle("=[ Downloads ]=")
 
 	input := tui.NewEntry()
 	input.SetFocused(true)
@@ -73,7 +117,7 @@ func main() {
 	infoBox.SetSizePolicy(tui.Expanding, tui.Maximum)
 	infoBox.SetTitle("=[ 0 | 0 ][]=")
 
-	help := tui.NewLabel("[Tab: Switch Search Type]   [ShiftTab: Switch View]   [CtrlQ: Quit]")
+	help := tui.NewLabel("[Tab: Switch Search Type]   [CtrlD: Switch View]   [CtrlQ: Quit]")
 	help.SetSizePolicy(tui.Expanding, tui.Maximum)
 
 	v := []*tui.Box{
@@ -92,12 +136,21 @@ func main() {
 
 	cur := 0
 
-	ui = tui.New(v[0])
+	login.OnActivated(func(b *tui.Button) {
+		t = tidal.New(user.Text(), password.Text())
+		if t.SessionID != "" {
+			ui.SetWidget(v[0])
+		} else {
+			msg.SetText("wrong username or password.")
+		}
+	})
+
 	ui.SetKeybinding("Ctrl+Q", func() { ui.Quit() })
 
 	ui.SetKeybinding("Enter", func() {
 		if cur != 1 {
 			if input.Text() != "" {
+				libBox.SetTitle("=[ Search: " + input.Text() + " ]=")
 				win.RemoveRows()
 				win.AppendRow(
 					tui.NewLabel("ARTIST"),
@@ -140,13 +193,13 @@ func main() {
 					case 0:
 						todo++
 						v := trackResults[win.Selected()-1]
-						dl.AddItems(fmt.Sprintf("%s - %s", v.Artists[0].Name, v.Title))
+						//dl.AddItems(fmt.Sprintf("%s - %s", v.Artists[0].Name, v.Title))
 						downQueue <- v
 					case 1:
 						d := t.GetAlbumTracks(albumResults[win.Selected()-1].ID.String())
 						todo += len(d)
 						for _, v := range d {
-							dl.AddItems(fmt.Sprintf("%s - %s", v.Artists[0].Name, v.Title))
+							//dl.AddItems(fmt.Sprintf("%s - %s", v.Artists[0].Name, v.Title))
 							downQueue <- v
 						}
 					}
@@ -178,7 +231,7 @@ func main() {
 			dlS.Scroll(0, 10)
 		}
 	})
-	ui.SetKeybinding("BackTab", func() {
+	ui.SetKeybinding("Ctrl+D", func() {
 		cur = int(math.Abs(float64(cur - 1))) // toggle between
 		ui.SetWidget(v[cur])
 	})
@@ -223,13 +276,12 @@ func downloadTrack(tr tidal.Track, q string) {
 	}
 
 	u := t.GetStreamURL(tr.ID.String(), q)
+	dl.AddItems(u)
 	res, err := http.Get(u)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-
-	ui.Update(func() { infoBox.SetTitle(fmt.Sprintf("=[ %d | %d ][ %s ]=", done, todo, path)) })
 	r := newProxy(res.Body, int(res.ContentLength), path)
 	io.Copy(f, r)
 	f.Close()
@@ -237,8 +289,9 @@ func downloadTrack(tr tidal.Track, q string) {
 
 	err = enc(path, tr.Title, tr.Artists[0].Name, tr.Album.Title, tr.TrackNumber.String())
 	if err != nil {
-		fmt.Println(err)
+		panic(err)
 	}
+	os.Remove(path)
 }
 
 func clean(s string) string {
@@ -251,7 +304,6 @@ func enc(src, title, artist, album, num string) error {
 	if err != nil {
 		return err
 	}
-	defer stream.Close()
 
 	// Add custom vorbis comment.
 	for _, block := range stream.Blocks {
@@ -270,11 +322,8 @@ func enc(src, title, artist, album, num string) error {
 		return err
 	}
 	defer f.Close()
-	err = flac.Encode(f, stream)
-	if err != nil {
-		return err
-	}
-	return os.Remove(src)
+	stream.Close()
+	return flac.Encode(f, stream)
 }
 
 /* little bit to proxy the reader and update the progress bar */
