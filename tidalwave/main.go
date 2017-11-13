@@ -44,12 +44,10 @@ func main() {
 	form.AppendRow(user, password)
 
 	login := tui.NewButton("[Login]")
-	register := tui.NewButton("[Register]")
 
 	buttons := tui.NewHBox(
 		tui.NewSpacer(),
 		tui.NewPadder(1, 0, login),
-		tui.NewPadder(1, 0, register),
 	)
 	msg := tui.NewStatusBar("   yeet yeet")
 	window := tui.NewVBox(
@@ -67,7 +65,7 @@ func main() {
 	)
 	content := tui.NewHBox(tui.NewSpacer(), wrapper, tui.NewSpacer())
 	loginPage := tui.NewVBox(content, tui.NewStatusBar("[Ctrl+Q: Quit]  [Tab: Cycle input]"))
-	tui.DefaultFocusChain.Set(user, password, login, register)
+	tui.DefaultFocusChain.Set(user, password, login)
 
 	ui = tui.New(loginPage)
 
