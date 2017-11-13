@@ -193,13 +193,13 @@ func main() {
 					case 0:
 						todo++
 						v := trackResults[win.Selected()-1]
-						//dl.AddItems(fmt.Sprintf("%s - %s", v.Artists[0].Name, v.Title))
+						dl.AddItems(fmt.Sprintf("%s - %s", v.Artists[0].Name, v.Title))
 						downQueue <- v
 					case 1:
 						d := t.GetAlbumTracks(albumResults[win.Selected()-1].ID.String())
 						todo += len(d)
 						for _, v := range d {
-							//dl.AddItems(fmt.Sprintf("%s - %s", v.Artists[0].Name, v.Title))
+							dl.AddItems(fmt.Sprintf("%s - %s", v.Artists[0].Name, v.Title))
 							downQueue <- v
 						}
 					}
@@ -276,7 +276,6 @@ func downloadTrack(tr tidal.Track, q string) {
 	}
 
 	u := t.GetStreamURL(tr.ID.String(), q)
-	dl.AddItems(u)
 	res, err := http.Get(u)
 	if err != nil {
 		fmt.Println(err)
