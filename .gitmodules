@@ -1,0 +1,4 @@
+[submodule "vendor/github.com/mewkiz/flac"]
+	path = vendor/github.com/mewkiz/flac
+	url = https://github.com/mewkiz/flac.git
+	branch = dev
