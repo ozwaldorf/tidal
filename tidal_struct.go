@@ -41,6 +41,7 @@ type Track struct {
 
 // Search struct
 type Search struct {
+	Items  []Album `json:"items"`
 	Albums struct {
 		Items []Album `json:"items"`
 	} `json:"albums"`
