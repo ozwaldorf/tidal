@@ -36,6 +36,7 @@ type Track struct {
 	Copyright   string      `json:"copyright"`
 	Popularity  int         `json:"popularity"`
 	TrackNumber json.Number `json:"trackNumber"`
+	Duration    json.Number `json:"duration"`
 }
 
 // Search struct
