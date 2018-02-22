@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -18,78 +19,96 @@ var c = &http.Client{
 	Jar: cookieJar, // I stole the cookie from the cookie jar
 }
 
-func (tidal *Tidal) get(dest string, query *url.Values, s interface{}) {
+func (t *Tidal) get(dest string, query *url.Values, s interface{}) error {
+	log.Println(baseurl + dest)
 	req, err := http.NewRequest("GET", baseurl+dest, nil)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
-	req.Header.Add("X-Tidal-SessionID", tidal.SessionID)
-	query.Add("countryCode", tidal.CountryCode)
+	req.Header.Add("X-Tidal-SessionID", t.SessionID)
+	query.Add("countryCode", t.CountryCode)
 	req.URL.RawQuery = query.Encode()
-	res, _ := c.Do(req)
+	res, err := c.Do(req)
+	if err != nil {
+		return err
+	}
+
 	defer res.Body.Close()
-	d := json.NewDecoder(res.Body)
-	d.Decode(&s)
+	return json.NewDecoder(res.Body).Decode(&s)
+}
+
+func (t *Tidal) CheckSession() (bool, error) {
+	//if self.user is None or not self.user.id or not self.session_id:
+	//return False
+	var out interface{}
+	err := t.get(fmt.Sprintf("users/%s/subscription", t.UserID), nil, &out)
+	fmt.Println(out)
+	return true, err
 }
 
 // GetStreamURL func
-func (tidal *Tidal) GetStreamURL(id, q string) string {
-	var s map[string]interface{}
-	tidal.get("tracks/"+id+"/streamUrl", &url.Values{
+func (t *Tidal) GetStreamURL(id, q string) (string, error) {
+	var s struct {
+		URL string `json:"url"`
+	}
+	err := t.get("tracks/"+id+"/streamUrl", &url.Values{
 		"soundQuality": {q},
 	}, &s)
-	return s["url"].(string)
+	return s.URL, err
 }
 
 // GetAlbumTracks func
-func (tidal *Tidal) GetAlbumTracks(id string) []Track {
+func (t *Tidal) GetAlbumTracks(id string) ([]Track, error) {
 	var s struct {
 		Items []Track `json:"items"`
 	}
-	tidal.get("albums/"+id+"/tracks", &url.Values{}, &s)
-	return s.Items
+	return s.Items, t.get("albums/"+id+"/tracks", &url.Values{}, &s)
 }
 
 // GetPlaylistTracks func
-func (tidal *Tidal) GetPlaylistTracks(id string) []Track {
+func (t *Tidal) GetPlaylistTracks(id string) ([]Track, error) {
 	var s struct {
 		Items []Track `json:"items"`
 	}
-	tidal.get("playlists/"+id+"/tracks", &url.Values{}, &s)
-	return s.Items
+	return s.Items, t.get("playlists/"+id+"/tracks", &url.Values{}, &s)
 }
 
 // SearchTracks func
-func (tidal *Tidal) SearchTracks(d, l string) []Track {
+func (t *Tidal) SearchTracks(d, l string) ([]Track, error) {
 	var s Search
-	tidal.get("search", &url.Values{
+	return s.Tracks.Items, t.get("search", &url.Values{
 		"query": {d},
 		"types": {"TRACKS"},
 		"limit": {l},
 	}, &s)
-	return s.Tracks.Items
 }
 
 // SearchAlbums func
-func (tidal *Tidal) SearchAlbums(d, l string) []Album {
+func (t *Tidal) SearchAlbums(d, l string) ([]Album, error) {
 	var s Search
-	tidal.get("search", &url.Values{
+	return s.Albums.Items, t.get("search", &url.Values{
 		"query": {d},
 		"types": {"ALBUMS"},
 		"limit": {l},
 	}, &s)
-	return s.Albums.Items
 }
 
 // SearchArtists func
-func (tidal *Tidal) SearchArtists(d, l string) []Artist {
+func (t *Tidal) SearchArtists(d, l string) ([]Artist, error) {
 	var s Search
-	tidal.get("search", &url.Values{
+	return s.Artists.Items, t.get("search", &url.Values{
 		"query": {d},
 		"types": {"ARTISTS"},
 		"limit": {l},
 	}, &s)
-	return s.Artists.Items
+}
+
+// SearchArtists func
+func (t *Tidal) GetArtistAlbums(artist, l string) ([]Album, error) {
+	var s Search
+	return s.Items, t.get(fmt.Sprintf("artists/%s/albums", artist), &url.Values{
+		"limit": {l},
+	}, &s)
 }
 
 // helper function to generate a uuid
@@ -102,7 +121,7 @@ func uuid() string {
 }
 
 // New func
-func New(user, pass string) *Tidal {
+func New(user, pass string) (*Tidal, error) {
 	query := url.Values{
 		"username":        {user},
 		"password":        {pass},
@@ -110,10 +129,15 @@ func New(user, pass string) *Tidal {
 		"clientUniqueKey": {uuid()},
 		"clientVersion":   {clientVersion},
 	}
-	res, _ := http.PostForm(baseurl+"login/username", query)
+	res, err := http.PostForm(baseurl+"login/username", query)
+	if err != nil {
+		return nil, err
+	}
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected error code from tidal: %d", res.StatusCode)
+	}
+
 	defer res.Body.Close()
-	d := json.NewDecoder(res.Body)
 	var t Tidal
-	d.Decode(&t)
-	return &t
+	return &t, json.NewDecoder(res.Body).Decode(&t)
 }
