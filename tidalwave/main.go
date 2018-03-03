@@ -3,15 +3,16 @@ package main
 import (
 	"fmt"
 	"io"
+	"log"
 	"math"
 	"net/http"
 	"os"
 	"strings"
 
+	"github.com/The5heepDev/tidal"
 	tui "github.com/marcusolsson/tui-go"
 	"github.com/mewkiz/flac"
 	"github.com/mewkiz/flac/meta"
-	"github.com/the5heepdev/tidal"
 )
 
 var t *tidal.Tidal
@@ -69,7 +70,11 @@ func main() {
 	loginPage := tui.NewVBox(content, tui.NewStatusBar("[Ctrl+Q: Quit]  [Tab: Cycle input]"))
 	tui.DefaultFocusChain.Set(user, password, login)
 
-	ui = tui.New(loginPage)
+	var err error
+	ui, err = tui.New(loginPage)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	win := tui.NewTable(0, 0)
 	win.SetColumnStretch(0, 2)
@@ -137,7 +142,11 @@ func main() {
 	cur := 0
 
 	login.OnActivated(func(b *tui.Button) {
-		t = tidal.New(user.Text(), password.Text())
+		var err error
+		t, err = tidal.New(user.Text(), password.Text())
+		if err != nil {
+			log.Fatal(err)
+		}
 		if t.SessionID != "" {
 			ui.SetWidget(v[0])
 			ui.SetKeybinding("Up", func() {
@@ -190,9 +199,13 @@ func main() {
 							tui.NewLabel(""),
 						)
 						win.SetSelected(1)
+						var err error
 						switch searchType {
 						case 0:
-							trackResults = t.SearchTracks(input.Text(), fmt.Sprintf("%d", libBox.Size().Y))
+							trackResults, err = t.SearchTracks(input.Text(), fmt.Sprintf("%d", libBox.Size().Y))
+							if err != nil {
+								log.Fatal(err)
+							}
 							for _, v := range trackResults {
 								win.AppendRow(
 									tui.NewLabel(v.Artists[0].Name),
@@ -204,7 +217,10 @@ func main() {
 							}
 
 						case 1:
-							albumResults = t.SearchAlbums(input.Text(), fmt.Sprintf("%d", libBox.Size().Y))
+							albumResults, err = t.SearchAlbums(input.Text(), fmt.Sprintf("%d", libBox.Size().Y))
+							if err != nil {
+								log.Fatal(err)
+							}
 							for _, v := range albumResults {
 								win.AppendRow(
 									tui.NewLabel(v.Artists[0].Name),
@@ -225,7 +241,10 @@ func main() {
 								dl.AddItems(fmt.Sprintf("%s - %s", v.Artists[0].Name, v.Title))
 								downQueue <- v
 							case 1:
-								d := t.GetAlbumTracks(albumResults[win.Selected()-1].ID.String())
+								d, err := t.GetAlbumTracks(albumResults[win.Selected()-1].ID.String())
+								if err != nil {
+									log.Fatal(err)
+								}
 								todo += len(d)
 								for _, v := range d {
 									dl.AddItems(fmt.Sprintf("%s - %s", v.Artists[0].Name, v.Title))
@@ -280,15 +299,16 @@ func downloadTrack(tr tidal.Track, q string) {
 	os.MkdirAll(dirs, os.ModePerm)
 	f, err := os.Create(path)
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
 
-	u := t.GetStreamURL(tr.ID.String(), q)
+	u, err := t.GetStreamURL(tr.ID.String(), q)
+	if err != nil {
+		log.Fatal(err)
+	}
 	res, err := http.Get(u)
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
 	r := newProxy(res.Body, int(res.ContentLength))
 	io.Copy(f, r)
