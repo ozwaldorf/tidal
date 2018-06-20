@@ -11,7 +11,7 @@ import (
 )
 
 const baseurl = "https://api.tidalhifi.com/v1/"
-const clientVersion = "1.9.1" // ayy that's the golang version too!
+const clientVersion = "1.9.1"
 const token = "kgsOOmYk3zShYrNP"
 
 var cookieJar, _ = cookiejar.New(nil)
@@ -46,7 +46,7 @@ func (t *Tidal) CheckSession() (bool, error) {
 	return true, err
 }
 
-// GetStreamURL func
+// GetStreamURL func returns the stream url for the selected track id and quality
 func (t *Tidal) GetStreamURL(id, q string) (string, error) {
 	var s struct {
 		URL string `json:"url"`
@@ -57,7 +57,7 @@ func (t *Tidal) GetStreamURL(id, q string) (string, error) {
 	return s.URL, err
 }
 
-// GetAlbumTracks func
+// GetAlbumTracks func returns a slice of tracks in an album by id
 func (t *Tidal) GetAlbumTracks(id string) ([]Track, error) {
 	var s struct {
 		Items []Track `json:"items"`
@@ -65,7 +65,7 @@ func (t *Tidal) GetAlbumTracks(id string) ([]Track, error) {
 	return s.Items, t.get("albums/"+id+"/tracks", &url.Values{}, &s)
 }
 
-// GetPlaylistTracks func
+// GetPlaylistTracks func returns a slice of tracks in a playlist by id
 func (t *Tidal) GetPlaylistTracks(id string) ([]Track, error) {
 	var s struct {
 		Items []Track `json:"items"`
@@ -73,7 +73,7 @@ func (t *Tidal) GetPlaylistTracks(id string) ([]Track, error) {
 	return s.Items, t.get("playlists/"+id+"/tracks", &url.Values{}, &s)
 }
 
-// SearchTracks func
+// SearchTracks func returns a slice of tracks by search and result limit
 func (t *Tidal) SearchTracks(d, l string) ([]Track, error) {
 	var s Search
 	return s.Tracks.Items, t.get("search", &url.Values{
@@ -83,7 +83,7 @@ func (t *Tidal) SearchTracks(d, l string) ([]Track, error) {
 	}, &s)
 }
 
-// SearchAlbums func
+// SearchAlbums func returns a slice of albums by search and result limit
 func (t *Tidal) SearchAlbums(d, l string) ([]Album, error) {
 	var s Search
 	return s.Albums.Items, t.get("search", &url.Values{
@@ -93,7 +93,7 @@ func (t *Tidal) SearchAlbums(d, l string) ([]Album, error) {
 	}, &s)
 }
 
-// SearchArtists func
+// SearchArtists func returns a slice of artists by search and result limit
 func (t *Tidal) SearchArtists(d, l string) ([]Artist, error) {
 	var s Search
 	return s.Artists.Items, t.get("search", &url.Values{
@@ -103,7 +103,7 @@ func (t *Tidal) SearchArtists(d, l string) ([]Artist, error) {
 	}, &s)
 }
 
-// SearchArtists func
+// SearchArtists func returns a slice of albums selected by artist and result limit
 func (t *Tidal) GetArtistAlbums(artist, l string) ([]Album, error) {
 	var s Search
 	return s.Items, t.get(fmt.Sprintf("artists/%s/albums", artist), &url.Values{
@@ -120,7 +120,7 @@ func uuid() string {
 	return fmt.Sprintf("%x", b)
 }
 
-// New func
+// New func creates a new tidal struct with the session created
 func New(user, pass string) (*Tidal, error) {
 	query := url.Values{
 		"username":        {user},
