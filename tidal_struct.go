@@ -2,21 +2,21 @@ package tidal
 
 import "encoding/json"
 
-// Tidal api struct
+// Tidal api struct is the main structure for the tidal session
 type Tidal struct {
 	SessionID   string      `json:"sessionID"`
 	CountryCode string      `json:"countryCode"`
 	UserID      json.Number `json:"userId"`
 }
 
-// Artist struct
+// Artist struct holds artist information
 type Artist struct {
 	ID         json.Number `json:"id"`
 	Name       string      `json:"name"`
 	Popularity int         `json:"popularity"`
 }
 
-// Album struct
+// Album struct holds album information
 type Album struct {
 	Artists        []Artist    `json:"artists,omitempty"`
 	Title          string      `json:"title"`
@@ -26,7 +26,7 @@ type Album struct {
 	Copyright      string      `json:"copyright,omitempty"`
 }
 
-// Track struct
+// Track struct holds track information
 type Track struct {
 	Artists     []Artist    `json:"artists"`
 	Album       Album       `json:"album"`
@@ -39,7 +39,7 @@ type Track struct {
 	Duration    json.Number `json:"duration"`
 }
 
-// Search struct
+// Search struct is the json template for search api responses
 type Search struct {
 	Items  []Album `json:"items"`
 	Albums struct {
